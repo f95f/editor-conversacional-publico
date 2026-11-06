@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "document": {
+    "id": "confirmacao-nome",
+    "title": "Confirmação de nome",
+    "startNodeId": "pergunta"
+  },
+  "content": {
+    "nodes": [
+      {
+        "id": "pergunta",
+        "title": "Confirma o nome",
+        "message": "Olá, falo com {{cliente_nome}}?"
+      },
+      {
+        "id": "apresentacao",
+        "title": "Apresenta o agente",
+        "message": "Sou {{agente_nome}}, da {{empresa}}. Podemos conversar?"
+      },
+      {
+        "id": "repeticao",
+        "title": "Repete a pergunta",
+        "message": "Preciso confirmar: você é {{cliente_nome}}?"
+      },
+      {
+        "id": "encerramento",
+        "title": "Encerra a conversa",
+        "message": "Obrigado pelo retorno. Encerramos por aqui."
+      }
+    ],
+    "edges": [
+      {
+        "id": "confirma",
+        "source": "pergunta",
+        "target": "apresentacao",
+        "baseMessage": "Sim, sou eu.",
+        "examples": [
+          "Sim",
+          "Ele mesmo"
+        ]
+      },
+      {
+        "id": "pessoa-errada",
+        "source": "pergunta",
+        "target": "encerramento",
+        "examples": [
+          "Não sou eu"
+        ],
+        "baseMessage": "Pessoa errada"
+      },
+      {
+        "id": "repetir",
+        "source": "pergunta",
+        "target": "repeticao",
+        "description": "O autor define e descreve o limite aplicável.",
+        "examples": [
+          "Pode repetir?"
+        ],
+        "baseMessage": "Repetição abaixo do limite"
+      },
+      {
+        "id": "limite",
+        "source": "pergunta",
+        "target": "encerramento",
+        "baseMessage": "Repetição com limite atingido"
+      },
+      {
+        "id": "retorno",
+        "source": "repeticao",
+        "target": "pergunta",
+        "baseMessage": "Retoma a confirmação"
+      },
+      {
+        "id": "nao-quer",
+        "source": "apresentacao",
+        "target": "encerramento",
+        "baseMessage": "Não deseja conversar"
+      }
+    ]
+  },
+  "layout": {
+    "nodes": {
+      "pergunta": {
+        "x": 0,
+        "y": 0,
+        "width": 240,
+        "height": 120
+      },
+      "apresentacao": {
+        "x": 0,
+        "y": 240,
+        "width": 240,
+        "height": 120
+      },
+      "repeticao": {
+        "x": 360,
+        "y": 0,
+        "width": 240,
+        "height": 120
+      },
+      "encerramento": {
+        "x": 360,
+        "y": 240,
+        "width": 240,
+        "height": 120
+      }
+    },
+    "viewport": {
+      "x": 60,
+      "y": 60,
+      "zoom": 1
+    }
+  }
+}

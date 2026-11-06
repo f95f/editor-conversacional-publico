@@ -1,0 +1,27 @@
+<nav class="toolbar-panel glass-panel" [class.focus-toolbar]="viewMode !== 'map'" aria-label="Visualização e ferramentas">
+  <div class="tool-section" role="group" aria-label="Visualização do fluxo">
+    <button class="action-btn" [class.active]="viewMode === 'path'" type="button" [attr.aria-pressed]="viewMode === 'path'" (click)="viewModeChange.emit('path')" title="Modo percurso">
+      <span class="material-symbols-outlined" aria-hidden="true">alt_route</span><span class="action-label">Percurso</span>
+    </button>
+    <button class="action-btn" [class.active]="viewMode === 'focus'" type="button" [attr.aria-pressed]="viewMode === 'focus'" (click)="viewModeChange.emit('focus')" title="Modo foco">
+      <span class="material-symbols-outlined" aria-hidden="true">center_focus_strong</span><span class="action-label">Foco</span>
+    </button>
+    <button class="action-btn" [class.active]="viewMode === 'map'" type="button" [attr.aria-pressed]="viewMode === 'map'" (click)="viewModeChange.emit('map')" title="Modo mapa">
+      <span class="material-symbols-outlined" aria-hidden="true">account_tree</span><span class="action-label">Mapa</span>
+    </button>
+  </div>
+  <div class="tool-section editing-tools" role="group" aria-label="Ações de edição">
+    <button class="action-btn primary" type="button" (click)="addNode.emit()" title="Adicionar bloco" aria-label="Adicionar bloco">
+      <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h8" /><path d="M16 3h6" /><path d="M19 0v6" /></svg>
+      <span class="action-label">Adicionar bloco</span>
+    </button>
+    <button *ngIf="viewMode === 'path'" class="action-btn" type="button" (click)="togglePathList.emit()" title="Lista de blocos" aria-label="Lista de blocos"><span class="material-symbols-outlined" aria-hidden="true">list</span><span class="action-label">Lista de blocos</span></button>
+    <button *ngIf="viewMode === 'path'" class="action-btn" type="button" (click)="centerPath.emit()" title="Centralizar percurso" aria-label="Centralizar percurso"><span class="material-symbols-outlined" aria-hidden="true">my_location</span><span class="action-label">Centralizar percurso</span></button>
+    <button class="action-btn" type="button" [disabled]="!canUndo" (click)="undo.emit()" title="Desfazer (Ctrl+Z)" aria-label="Desfazer (Ctrl+Z)">
+      <span class="material-symbols-outlined" aria-hidden="true">undo</span><span class="action-label">Desfazer</span>
+    </button>
+    <button class="action-btn" type="button" [disabled]="!canRedo" (click)="redo.emit()" title="Refazer (Ctrl+Y)" aria-label="Refazer (Ctrl+Y)">
+      <span class="material-symbols-outlined" aria-hidden="true">redo</span><span class="action-label">Refazer</span>
+    </button>
+  </div>
+</nav>

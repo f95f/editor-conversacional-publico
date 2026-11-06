@@ -1,0 +1,107 @@
+<aside class="property-panel glass-panel" [class.collapsed]="isCollapsed">
+  <div class="panel-header">
+    <div class="panel-title">
+      <span class="material-symbols-outlined icon" aria-hidden="true">{{ getPanelIcon() }}</span>
+      <span>{{ getPanelTitle() }}</span>
+    </div>
+    <button
+      *ngIf="!closable"
+      class="btn btn-quiet btn-icon toggle-btn"
+      (click)="isCollapsed = !isCollapsed"
+      [title]="isCollapsed ? 'Expandir painel' : 'Recolher painel'"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ isCollapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_right' }}
+      </span>
+    </button>
+    <button *ngIf="closable" class="btn btn-quiet btn-icon toggle-btn" type="button" (click)="close.emit()" title="Fechar inspetor" aria-label="Fechar inspetor"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
+  </div>
+
+  <div class="panel-content" *ngIf="!isCollapsed">
+    <!-- PROPRIEDADES DO BLOCO (AGENTE) -->
+    <ng-container *ngIf="selectedNode">
+      <div class="form-group">
+        <label class="form-label">Título da Ação (Agente)</label>
+        <input
+          type="text"
+          class="form-input"
+          [ngModel]="selectedNode.title"
+          (ngModelChange)="onNodeChange({ title: $event })"
+          placeholder="Ex: Confirmação de Nome"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição Curta</label>
+        <input
+          type="text"
+          class="form-input"
+          [ngModel]="selectedNode.description || ''"
+          (ngModelChange)="onNodeChange({ description: $event })"
+          placeholder="Ex: Primeira tentativa de identificação"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mensagem do Agente (Fala Literal)</label>
+        <textarea
+          class="form-textarea agent-message-editor"
+          rows="12"
+          [ngModel]="selectedNode.message || ''"
+          (ngModelChange)="onNodeChange({ message: $event })"
+          placeholder="Ex: Olá, preciso confirmar se falo com cliente_nome. É você?"
+        ></textarea>
+      </div>
+      <button class="btn btn-secondary delete-node" type="button" (click)="deleteNode.emit(selectedNode.id)"><span class="material-symbols-outlined" aria-hidden="true">delete</span> Excluir bloco</button>
+    </ng-container>
+
+    <!-- PROPRIEDADES DA LIGAÇÃO (CLIENTE) -->
+    <ng-container *ngIf="selectedEdge">
+      <div class="form-group">
+        <label class="form-label">Mensagem Base</label>
+        <input
+          type="text"
+          class="form-input"
+          [ngModel]="selectedEdge.baseMessage"
+          (ngModelChange)="onEdgeChange({ baseMessage: $event })"
+          placeholder="Ex: Sim, sou eu"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição / Regra / Limite</label>
+        <textarea
+          class="form-textarea"
+          rows="2"
+          [ngModel]="selectedEdge.description || ''"
+          (ngModelChange)="onEdgeChange({ description: $event })"
+          placeholder="Ex: Pedido de repetição abaixo do limite de 2 tentativas"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label class="form-label">Exemplos de Mensagens</label>
+          <button class="btn btn-quiet btn-xs" (click)="addExample()">+ Add</button>
+        </div>
+        <div
+          class="example-item"
+          *ngFor="let example of selectedEdge.examples || []; let i = index; trackBy: trackByIndex"
+        >
+          <input
+            type="text"
+            class="form-input"
+            [ngModel]="example"
+            (ngModelChange)="updateExample(i, $event)"
+            placeholder="Ex: isso, ele mesmo"
+          />
+          <button class="btn btn-quiet btn-xs danger" (click)="removeExample(i)">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-secondary delete-edge" type="button" (click)="deleteEdge.emit(selectedEdge.id)"><span class="material-symbols-outlined" aria-hidden="true">delete</span> Excluir conexão</button>
+    </ng-container>
+
+  </div>
+</aside>

@@ -1,0 +1,82 @@
+<header class="header-panel glass-panel">
+  <div class="header-left">
+    <div class="app-brand">
+      <svg class="lucide-icon brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 6V2H8" />
+        <rect width="16" height="12" x="4" y="8" rx="2" />
+        <path d="M2 14h2" />
+        <path d="M20 14h2" />
+        <path d="M15 13v2" />
+        <path d="M9 13v2" />
+        <path d="M7 22h10" />
+      </svg>
+      <span class="brand-name">Editor de Conversas</span>
+    </div>
+    <div class="divider"></div>
+    <div class="title-container">
+      <input
+        type="text"
+        class="document-title-input"
+        [ngModel]="title"
+        (ngModelChange)="onTitleChange($event)"
+        placeholder="Título do Fluxo"
+      />
+    </div>
+    <!-- Mantido para futura decisão de metadados de exportação.
+    <div
+      class="status-badge"
+      [class.dirty]="hasUnexportedChanges"
+      [title]="hasUnexportedChanges ? 'Existem alterações não baixadas para arquivo' : 'Documento sincronizado'"
+    >
+      <span class="status-dot"></span>
+      {{ hasUnexportedChanges ? 'Não exportado' : 'Exportado' }}
+    </div>
+    <div
+      *ngIf="draftRecovered"
+      class="status-badge draft"
+      title="Sessão recuperada do armazenamento local; ainda não equivale a arquivo exportado"
+    >
+      <span class="status-dot"></span>
+      Rascunho local
+    </div>
+    -->
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-quiet" (click)="newDocument.emit()" title="Criar novo fluxo vazio">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      <span>Novo</span>
+    </button>
+    <button
+      class="btn btn-quiet"
+      [disabled]="isOpeningDocument"
+      (click)="openDocument.emit()"
+      title="Abrir arquivo .flow.json"
+    >
+      <span
+        class="material-symbols-outlined"
+        [class.spin]="isOpeningDocument"
+        aria-hidden="true"
+      >
+        {{ isOpeningDocument ? 'progress_activity' : 'folder_open' }}
+      </span>
+      <span>{{ isOpeningDocument ? 'Abrindo' : 'Abrir' }}</span>
+    </button>
+    <button
+      class="btn btn-quiet"
+      (click)="loadExample.emit()"
+      title="Carregar exemplo fictício 'Confirmação de Nome'"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">schema</span>
+      <span>Exemplo</span>
+    </button>
+    <button
+      class="btn btn-primary"
+      (click)="exportDocument.emit()"
+      title="Baixar arquivo .flow.json"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>
+      <span>Exportar</span>
+    </button>
+  </div>
+</header>

@@ -1,0 +1,159 @@
+<div class="editor-shell" [class.sidebar-open]="flowsSidebarOpen">
+  <aside class="flows-sidebar" *ngIf="flowsSidebarOpen" aria-label="Fluxos locais">
+    <div class="flows-heading"><strong>Meus fluxos</strong><button class="btn btn-quiet btn-xs" (click)="flowsSidebarOpen = false" aria-label="Recolher lista de fluxos">×</button></div>
+    <p class="local-status" role="status">{{ localSaveError || 'Salvo automaticamente neste navegador' }}</p>
+    <button class="btn btn-secondary" (click)="onNewDocument()">+ Novo fluxo</button>
+    <nav class="flows-list" aria-label="Selecionar fluxo">
+      <button *ngFor="let flow of savedFlows" class="flow-entry" [class.active]="flow.key === activeFlowKey" [attr.aria-current]="flow.key === activeFlowKey ? 'true' : null" (click)="selectLocalFlow(flow.key)">
+        <strong>{{ flow.document.document.title || 'Sem título' }}</strong>
+        <small>{{ flow.document.content.nodes.length }} ações · {{ flow.updatedAt | date:'dd/MM HH:mm' }}</small>
+      </button>
+    </nav>
+    <p class="local-hint">Os fluxos ficam neste navegador. Use Exportar para guardar uma cópia em arquivo.</p>
+  </aside>
+<main class="app-container" [class.focus-mode]="viewMode === 'focus'" [class.path-mode]="viewMode === 'path'">
+  <button *ngIf="!flowsSidebarOpen" class="btn btn-secondary show-flows" (click)="flowsSidebarOpen = true" aria-label="Mostrar lista de fluxos">Meus fluxos</button>
+  <app-header-panel
+    [title]="session.document.document.title"
+    [hasUnexportedChanges]="session.hasUnexportedChanges"
+    [draftRecovered]="draftRecovered"
+    [isOpeningDocument]="isOpeningDocument"
+    (titleChange)="onTitleChange($event)"
+    (newDocument)="onNewDocument()"
+    (openDocument)="onOpenDocument()"
+    (loadExample)="onLoadExample()"
+    (exportDocument)="onExportDocument()"
+  ></app-header-panel>
+
+  <app-toolbar-panel
+    [viewMode]="viewMode"
+    [canUndo]="session.canUndo"
+    [canRedo]="session.canRedo"
+    (viewModeChange)="setViewMode($event)"
+    (addNode)="onAddNode()"
+    (togglePathList)="flowPath?.toggleList()"
+    (centerPath)="flowPath?.centerView()"
+    (undo)="onUndo()"
+    (redo)="onRedo()"
+  ></app-toolbar-panel>
+
+  <app-flow-canvas
+    *ngIf="viewMode === 'map'"
+    [document]="session.document"
+    [selectedNodeIds]="session.selection.nodeIds"
+    [selectedEdgeIds]="session.selection.edgeIds"
+    [zoom]="zoom"
+    (selectionChange)="onSelectionChange($event)"
+    (nodeLayoutChange)="onNodeLayoutChange($event)"
+    (createEdge)="onCreateEdge($event)"
+    (viewportChange)="onViewportChange($event)"
+    (zoomChange)="zoom = $event"
+  ></app-flow-canvas>
+
+  <app-flow-focus
+    *ngIf="viewMode === 'focus'"
+    [document]="session.document"
+    [activeNodeId]="focusNodeId"
+    [selectedEdgeIds]="session.selection.edgeIds"
+    [canGoBack]="focusHistory.length > 0"
+    [history]="focusHistory"
+    [query]="focusQuery"
+    [responseFilter]="responseFilter"
+    (queryChange)="focusQuery = $event"
+    (responseFilterChange)="responseFilter = $event"
+    (navigate)="navigateToNode($event)"
+    (goBack)="goBackInFocus()"
+    (goHome)="goToStartInFocus()"
+    (selectNode)="selectFocusNode($event)"
+    (selectEdge)="selectFocusEdge($event)"
+    (toggleEdge)="toggleFocusEdge($event)"
+    (clearSelection)="onSelectionChange({ nodeIds: [], edgeIds: [] })"
+    (updateNode)="onUpdateNode($event)"
+    (updateEdge)="onUpdateEdge($event)"
+    (addEdge)="onCreateEdge($event)"
+  ></app-flow-focus>
+
+  <app-flow-path
+    *ngIf="viewMode === 'path'"
+    [document]="session.document"
+    [steps]="pathSteps"
+    [inspectorOpen]="pathInspectorOpen"
+    [selectedNodeIds]="session.selection.nodeIds"
+    [selectedEdgeIds]="session.selection.edgeIds"
+    [navigationTick]="pathNavigationTick"
+    [navigationDirection]="pathNavigationDirection"
+    [resetEpoch]="pathResetEpoch"
+    (followEdge)="followPathEdge($event)"
+    (jumpToStep)="jumpToPathStep($event)"
+    (jumpToNode)="resetPath($event)"
+    (jumpToEdge)="jumpToPathEdge($event)"
+    (editNode)="openPathNodeInspector($event)"
+    (editEdge)="openPathEdgeInspector($event)"
+    (addResponseNode)="onAddNode()"
+    (updateEdge)="onUpdateEdge($event)"
+    (connectNode)="connectPathNode($event)"
+    (selectionChange)="onSelectionChange($event)"
+  ></app-flow-path>
+
+  <app-property-panel
+    *ngIf="(viewMode !== 'path' || pathInspectorOpen) && (getSelectedNode() || getSelectedEdge())"
+    [selectedNode]="getSelectedNode()"
+    [selectedEdge]="getSelectedEdge()"
+    [closable]="viewMode === 'path'"
+    (updateNode)="onUpdateNode($event)"
+    (updateEdge)="onUpdateEdge($event)"
+    (deleteNode)="onDeleteNode($event)"
+    (deleteEdge)="onDeleteEdge($event)"
+    (close)="closePathInspector()"
+  ></app-property-panel>
+
+  <!-- Controles de Zoom Flutuantes -->
+  <app-zoom-controls
+    *ngIf="viewMode === 'map'"
+    [zoom]="zoom"
+    [isDarkTheme]="isDarkTheme"
+    (zoomIn)="onZoomIn()"
+    (zoomOut)="onZoomOut()"
+    (zoomReset)="flowCanvas?.resetZoom()"
+    (fitView)="flowCanvas?.fitView()"
+    (toggleTheme)="onToggleTheme()"
+  ></app-zoom-controls>
+
+  <div class="modal-overlay" *ngIf="swapDialog">
+    <div class="modal-card modal-card-sm glass-panel-strong">
+      <div class="modal-header">
+        <h3>Alterações não exportadas</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-instruction">
+          Este fluxo tem mudanças que ainda não foram baixadas em um arquivo .flow.json.
+        </p>
+      </div>
+      <div class="modal-footer split-actions">
+        <button class="btn btn-quiet" (click)="resolveSwapDialog('cancel')">Cancelar</button>
+        <div class="modal-footer-group">
+          <button class="btn btn-secondary" (click)="resolveSwapDialog('discard')">Descartar</button>
+          <button class="btn btn-primary" (click)="resolveSwapDialog('save')">Exportar e continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="noticeDialog">
+    <div class="modal-card modal-card-sm glass-panel-strong">
+      <div class="modal-header">
+        <h3>{{ noticeDialog.title }}</h3>
+        <button class="btn btn-quiet btn-xs" (click)="noticeDialog = null">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-instruction preserve-lines">{{ noticeDialog.message }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="noticeDialog = null">Ok</button>
+      </div>
+    </div>
+  </div>
+</main>
+</div>

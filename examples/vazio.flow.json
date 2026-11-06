@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "document": {
+    "id": "fluxo-vazio",
+    "title": "Novo fluxo"
+  },
+  "content": {
+    "nodes": [],
+    "edges": []
+  }
+}

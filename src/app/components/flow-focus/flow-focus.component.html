@@ -1,0 +1,75 @@
+<section class="focus-workspace" aria-label="Navegação do fluxo" (click)="onWorkspaceClick($event)">
+  <aside class="focus-search">
+    <label class="field-label" for="flow-search">Buscar em todo o fluxo</label>
+    <div class="search-field">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+      <input id="flow-search" type="search" [ngModel]="query" (ngModelChange)="queryChange.emit($event); visibleResultCount = 50" placeholder="Título, mensagem ou resposta" />
+    </div>
+    <div class="search-results" *ngIf="query.trim()">
+      <div class="result-count">{{ searchResults.length }} {{ searchResults.length === 1 ? 'resultado' : 'resultados' }}</div>
+      <button *ngFor="let result of shownResults; trackBy: trackResult" class="search-result" type="button" (click)="selectSearchResult(result)">
+        <span class="result-type">{{ result.kind === 'node' ? 'Bloco' : 'Resposta' }} · {{ result.matchedIn }}</span>
+        <strong *ngIf="result.kind === 'node'"><ng-container *ngFor="let part of highlightParts(result.node.title); trackBy: trackPart"><mark *ngIf="part.match">{{ part.text }}</mark><ng-container *ngIf="!part.match">{{ part.text }}</ng-container></ng-container></strong>
+        <strong *ngIf="result.kind === 'edge'"><ng-container *ngFor="let part of highlightParts(result.edge.baseMessage); trackBy: trackPart"><mark *ngIf="part.match">{{ part.text }}</mark><ng-container *ngIf="!part.match">{{ part.text }}</ng-container></ng-container></strong>
+        <small *ngIf="result.kind === 'edge'">{{ result.source.title }} → {{ result.target.title }}</small>
+        <small *ngIf="result.snippet && (result.kind === 'edge' && result.matchedIn !== 'Resposta' || result.kind === 'node' && result.matchedIn !== 'Título')">
+          <ng-container *ngFor="let part of highlightParts(result.snippet); trackBy: trackPart"><mark *ngIf="part.match">{{ part.text }}</mark><ng-container *ngIf="!part.match">{{ part.text }}</ng-container></ng-container>
+        </small>
+      </button>
+      <button *ngIf="searchResults.length > visibleResultCount" class="list-more" type="button" (click)="visibleResultCount = visibleResultCount + 50">Mostrar mais resultados</button>
+      <p *ngIf="!searchResults.length" class="no-results">Nenhum bloco ou resposta encontrado.</p>
+    </div>
+    <div class="focus-index" *ngIf="!query.trim()">
+      <div class="index-heading">Blocos <span>{{ document.content.nodes.length }}</span></div>
+      <button *ngFor="let node of indexNodes; trackBy: trackNode" class="index-item" [class.active]="node.id === activeNodeId" type="button" draggable="true" (dragstart)="dragNode($event, node)" (click)="navigate.emit(node.id)" [title]="isEditing ? 'Arraste para um destino ou clique para abrir ' + node.title : node.title">
+        <strong>{{ node.title }}</strong><small [title]="nodePreview(node)">{{ nodePreview(node) }}</small>
+      </button>
+      <button *ngIf="document.content.nodes.length > visibleIndexCount" class="list-more" type="button" (click)="visibleIndexCount = visibleIndexCount + 100">Mostrar mais blocos</button>
+    </div>
+  </aside>
+
+  <div class="focus-main" #focusMain>
+    <div class="focus-navigation">
+      <button class="nav-button" type="button" (click)="goBack.emit()" [disabled]="!canGoBack" title="Voltar ao bloco anterior" aria-label="Voltar ao bloco anterior"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span></button>
+      <button class="nav-button" type="button" (click)="goHome.emit()" [disabled]="!document.document.startNodeId" title="Ir ao início" aria-label="Ir ao início"><span class="material-symbols-outlined" aria-hidden="true">home</span></button>
+      <nav class="recent-path" aria-label="Caminho recente" *ngIf="recentPath.length > 1">
+        <ng-container *ngFor="let id of recentPath; let last = last"><button type="button" (click)="navigate.emit(id)" [disabled]="last" [title]="nodeTitle(id)">{{ nodeTitle(id) }}</button><span *ngIf="!last" aria-hidden="true">›</span></ng-container>
+      </nav>
+      <span class="document-count">{{ document.content.nodes.length }} blocos · {{ document.content.edges.length }} respostas</span>
+    </div>
+
+    <ng-container *ngIf="activeNode as node; else emptyFlow">
+      <header class="current-node">
+        <span class="section-label">Bloco atual <span *ngIf="node.id === document.document.startNodeId">· Início</span></span>
+        <div class="current-heading"><h1>{{ node.title }}</h1><button class="edit-button" [class.active]="isEditing" type="button" (click)="toggleEdit()" [attr.aria-pressed]="isEditing" [title]="isEditing ? 'Concluir edição' : 'Editar bloco e respostas'"><span class="material-symbols-outlined" aria-hidden="true">{{ isEditing ? 'check' : 'edit' }}</span><span>{{ isEditing ? 'Concluir' : 'Editar' }}</span></button></div>
+        <div *ngIf="isEditing" class="inline-node-editor">
+          <label>Título do bloco<input #titleEditor type="text" [ngModel]="node.title" (ngModelChange)="changeNode({ title: $event })" /></label>
+          <label>Mensagem do agente<textarea rows="3" [ngModel]="node.message || ''" (ngModelChange)="changeNode({ message: $event })"></textarea></label>
+          <label>Descrição curta<input type="text" [ngModel]="node.description || ''" (ngModelChange)="changeNode({ description: $event })" /></label>
+        </div>
+        <ng-container *ngIf="!isEditing"><p class="node-message" *ngIf="node.message">{{ node.message }}</p><p class="node-description" *ngIf="node.description">{{ node.description }}</p></ng-container>
+      </header>
+
+      <section class="transitions" aria-label="Respostas do cliente">
+        <div class="section-heading"><h2>Respostas <span>{{ outgoingCount }}</span></h2><div class="response-actions"><input type="search" [ngModel]="responseFilter" (ngModelChange)="responseFilterChange.emit($event)" placeholder="Filtrar neste bloco" aria-label="Filtrar respostas deste bloco" /><button class="add-response" type="button" (click)="beginAddResponse()"><span class="material-symbols-outlined" aria-hidden="true">add</span> Nova resposta</button></div></div>
+        <div class="transition-list" *ngIf="outgoing.length; else noOutgoing">
+          <div class="transition-row" *ngFor="let edge of outgoing; trackBy: trackEdge" [class.selected]="selectedEdgeIds.includes(edge.id)">
+            <div class="transition-text" *ngIf="isEditing; else readResponse"><label [attr.aria-label]="'Texto da resposta para ' + nodeTitle(edge.target)"><input type="text" [ngModel]="edge.baseMessage" (ngModelChange)="changeEdge(edge.id, { baseMessage: $event })" /></label><small *ngIf="edge.description">{{ edge.description }}</small></div>
+            <ng-template #readResponse><button class="transition-text" type="button" (click)="onResponseClick($event, edge.id)" [title]="(edge.description || edge.baseMessage) + ' · Ctrl+clique para selecionar várias respostas'" [attr.aria-pressed]="selectedEdgeIds.includes(edge.id)"><strong>{{ edge.baseMessage }}</strong><small *ngIf="edge.description">{{ edge.description }}</small></button></ng-template>
+            <div class="target-cell" *ngIf="isEditing; else readTarget" [class.drag-over]="dragTargetEdgeId === edge.id" (dragover)="allowDrop($event, edge.id)" (dragleave)="leaveDrop()" (drop)="dropNode($event, edge.id)">
+              <div class="target-actions"><button class="target-picker-button" type="button" (click)="beginTargetEdit(edge)" [title]="'Alterar destino: ' + nodeTitle(edge.target)"><span>{{ nodeTitle(edge.target) }}</span><span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span></button><button class="mapped-edit-button" type="button" (click)="editMappedNode(edge.target)" [title]="'Editar bloco ' + nodeTitle(edge.target)" [attr.aria-label]="'Editar bloco ' + nodeTitle(edge.target)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button></div>
+              <div class="target-picker" *ngIf="targetEditorEdgeId === edge.id"><label [attr.for]="'target-' + edge.id">Buscar bloco de destino</label><input [id]="'target-' + edge.id" type="search" [ngModel]="targetQuery" (ngModelChange)="targetQuery = $event" placeholder="Digite título ou ID" /><div class="target-options"><button *ngFor="let option of targetOptions; trackBy: trackNode" type="button" (click)="chooseTarget(edge.id, option)"><strong>{{ option.title }}</strong><small [title]="nodePreview(option)">{{ nodePreview(option) }}</small></button><p *ngIf="!targetOptions.length">Nenhum bloco encontrado.</p></div></div>
+            </div>
+            <div class="mapped-node-editor" *ngIf="isEditing && editingMappedNodeId === edge.target && mappedNode(edge.target) as mapped"><div class="mapped-heading">Editar bloco de destino: {{ mapped.title }}</div><label>Título<input type="text" [ngModel]="mapped.title" (ngModelChange)="changeMappedNode(mapped.id, { title: $event })" /></label><label>Mensagem do agente<textarea rows="3" [ngModel]="mapped.message || ''" (ngModelChange)="changeMappedNode(mapped.id, { message: $event })"></textarea></label><label>Descrição curta<input type="text" [ngModel]="mapped.description || ''" (ngModelChange)="changeMappedNode(mapped.id, { description: $event })" /></label></div>
+            <ng-template #readTarget><button class="transition-target" type="button" (click)="navigate.emit(edge.target)" [title]="'Ir para ' + nodeTitle(edge.target)"><span>{{ nodeTitle(edge.target) }}</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button></ng-template>
+          </div>
+        </div>
+        <ng-template #noOutgoing><p class="empty-list">{{ responseFilter ? 'Nenhuma resposta corresponde ao filtro.' : 'Este bloco não tem respostas de saída.' }}</p></ng-template>
+        <div class="new-response" *ngIf="showAddResponse"><h3>Nova resposta</h3><label>Texto da resposta<input type="text" [(ngModel)]="draftMessage" placeholder="O que o cliente pode responder?" /></label><label>Bloco de destino<input type="search" [ngModel]="draftTargetQuery" (ngModelChange)="onDraftQuery($event)" placeholder="Digite título ou ID, ou arraste um bloco" /></label><div class="target-options" [class.drag-over]="draftDragOver" (dragover)="allowDrop($event, null)" (dragleave)="leaveDrop()" (drop)="dropNode($event, null)"><button *ngFor="let option of draftOptions; trackBy: trackNode" type="button" [class.chosen]="draftTargetId === option.id" (click)="chooseDraftTarget(option)"><strong>{{ option.title }}</strong><small [title]="nodePreview(option)">{{ nodePreview(option) }}</small></button><p *ngIf="!draftOptions.length">Nenhum bloco encontrado.</p></div><div class="form-actions"><button type="button" (click)="showAddResponse = false">Cancelar</button><button type="button" class="confirm" [disabled]="!draftMessage.trim() || !draftTargetId" (click)="createResponse()">Adicionar resposta</button></div></div>
+      </section>
+
+      <section class="incoming" aria-label="Entradas neste bloco" *ngIf="incoming.length"><h2>Entradas <span>{{ incoming.length }}</span></h2><div class="incoming-list"><div class="incoming-row" *ngFor="let edge of incoming; trackBy: trackEdge"><button type="button" (click)="navigate.emit(edge.source)">{{ nodeTitle(edge.source) }}</button><button type="button" (click)="selectEdge.emit(edge.id)">{{ edge.baseMessage }}</button></div></div></section>
+    </ng-container>
+    <ng-template #emptyFlow><div class="empty-flow">Este fluxo ainda não tem blocos. Use Adicionar bloco na barra lateral para começar.</div></ng-template>
+  </div>
+</section>

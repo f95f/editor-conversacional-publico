@@ -1,0 +1,270 @@
+/* ==========================================================================
+   CARVÃO & MENTA - DESIGN SYSTEM
+   Identidade escura e técnica com acentos verde-menta e superfícies de vidro
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200,0,0&display=swap');
+
+:root {
+  /* Tema Escuro (Default) */
+  --color-primary: #101213;
+  --color-secondary: #171C1B;
+  --color-tertiary: #A7E8D4;
+  --color-neutral: #E7EEEB;
+  --color-muted: #9EACA6;
+  --color-surface: rgba(23, 28, 27, 0.76);
+  --color-surface-strong: rgba(23, 28, 27, 0.88);
+  --color-success: #83D3B5;
+  --color-warning: #E4C27B;
+  --color-danger: #E58E88;
+  --color-start: #8BBBD5;
+  --color-start-surface: #1B303A;
+  --color-input: #141A19;
+  --color-border: rgba(190, 220, 207, 0.18);
+  --color-line: #71827B;
+  --color-grid: rgba(158, 172, 166, 0.16);
+  --color-success-surface: #20342E;
+  --color-warning-surface: #342E21;
+  --color-danger-surface: #392625;
+  --color-shadow: rgba(0, 0, 0, 0.4);
+
+  /* Arredondamento */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* Espaçamento */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 10px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+
+  /* Fontes */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+
+  /* Transições */
+  --transition-fast: 140ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-normal: 200ms cubic-bezier(0.2, 0, 0, 1);
+
+  /* Vidro */
+  --backdrop-blur: blur(18px) saturate(145%);
+}
+
+[data-theme="light"] {
+  --color-primary: #F3F6F4;
+  --color-secondary: #E7EEEA;
+  --color-tertiary: #246C58;
+  --color-neutral: #18251F;
+  --color-muted: #52665B;
+  --color-surface: rgba(255, 255, 255, 0.76);
+  --color-surface-strong: rgba(255, 255, 255, 0.92);
+  --color-success: #246C58;
+  --color-warning: #805C16;
+  --color-danger: #A33E38;
+  --color-start: #2D6485;
+  --color-start-surface: #E3F1F8;
+  --color-input: #FFFFFF;
+  --color-border: rgba(39, 71, 55, 0.20);
+  --color-line: #647B6E;
+  --color-grid: rgba(82, 102, 91, 0.18);
+  --color-success-surface: #E0F0E8;
+  --color-warning-surface: #F6ECD5;
+  --color-danger-surface: #F8E4E1;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Base resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.debug {
+  outline: 1px dashed red !important;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-primary);
+  color: var(--color-neutral);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism Panel Base */
+.glass-panel {
+  background-color: var(--color-surface);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px var(--color-shadow);
+  color: var(--color-neutral);
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+/* Support fallback for backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-panel {
+    background-color: var(--color-secondary);
+  }
+}
+
+.glass-panel-strong {
+  background-color: var(--color-surface-strong);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px var(--color-shadow);
+}
+
+/* Botões */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+  outline: none;
+  user-select: none;
+}
+
+button,
+[role="button"],
+[draggable="true"],
+.material-symbols-outlined {
+  user-select: none;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'opsz' 24, 'wght' 200, 'FILL' 0, 'GRAD' 0;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-tertiary);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background-color: var(--color-tertiary);
+  color: var(--color-primary);
+  border-color: var(--color-tertiary);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-neutral);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-border);
+}
+
+.btn-quiet {
+  background-color: transparent;
+  color: var(--color-neutral);
+  border-color: transparent;
+}
+
+.btn-quiet:hover {
+  background-color: var(--color-border);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+
+/* Form Controls */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.form-label {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-muted);
+  letter-spacing: 0.02em;
+}
+
+.form-input, .form-textarea {
+  background-color: var(--color-input);
+  color: var(--color-neutral);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--color-tertiary);
+  box-shadow: 0 0 0 2px rgba(167, 232, 212, 0.2);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-size: 14px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}

@@ -1,0 +1,137 @@
+<div
+  class="canvas-wrapper"
+  (window:keydown)="onKeyDown($event)"
+  (window:keyup)="onKeyUp($event)"
+  (window:pointerup)="onPointerUp()"
+  (window:pointercancel)="onPointerUp()"
+>
+  <f-flow
+    fDraggable
+    [hCellSize]="60"
+    [vCellSize]="60"
+    [fCellSizeWhileDragging]="!isShiftPressed"
+    (fSelectionChange)="onFoblexSelectionChange($event)"
+    (fMoveNodes)="onMoveNodes($event)"
+    (fCreateConnection)="onConnectionCreated($event)"
+    (fFullRendered)="onFlowRendered()"
+    (click)="onCanvasBackgroundClick($event)"
+  >
+    <f-selection-area></f-selection-area>
+    <f-canvas
+      fZoom
+      [scale]="zoom"
+      [fZoomMinimum]="minZoom"
+      [fZoomMaximum]="maxZoom"
+      [fZoomStep]="zoomStep"
+      (fCanvasChange)="onCanvasChange($event)"
+    >
+      <f-connection-for-create [fType]="connectionType" class="flow-edge-preview">
+        <f-connection-marker-arrow fType="end"></f-connection-marker-arrow>
+      </f-connection-for-create>
+
+      <ng-container ngProjectAs="[fNodes]">
+        <div
+          *ngFor="let node of document?.content?.nodes || []; trackBy: trackByNodeId"
+          fNode
+          fDragHandle
+          [fNodeId]="node.id"
+          [fNodePosition]="getNodePosition(node.id)"
+          class="flow-node-card glass-panel"
+          [class.selected]="selectedNodeIds.includes(node.id)"
+          [class.is-start]="document?.document?.startNodeId === node.id"
+          [class.is-end]="isEndNode(node.id)"
+          [attr.title]="node.message ? null : (node.description || node.title)"
+          [attr.aria-describedby]="previewNodeId === node.id ? 'node-message-preview' : null"
+          tabindex="0"
+          (mouseenter)="showNodePreview(node, $event)"
+          (mouseleave)="schedulePreviewHide()"
+          (focus)="showNodePreview(node, $event)"
+          (blur)="schedulePreviewHide()"
+          (pointerdown)="onNodePointerDown(node.id)"
+        >
+          <div *ngIf="document?.document?.startNodeId === node.id" class="node-state-badge start-badge">
+            Início
+          </div>
+          <div *ngIf="isEndNode(node.id)" class="node-state-badge end-badge">
+            Fim
+          </div>
+
+          <div class="node-header">
+            <svg class="lucide-icon node-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8V4H8" />
+              <rect width="16" height="12" x="4" y="8" rx="2" />
+              <path d="M2 14h2" />
+              <path d="M20 14h2" />
+              <path d="M15 13v2" />
+              <path d="M9 13v2" />
+            </svg>
+            <span class="node-title" [attr.title]="node.message ? null : node.title">{{ node.title || 'Sem título' }}</span>
+          </div>
+
+          <div
+            fConnector
+            fConnectorType="target"
+            [fConnectorId]="getTargetConnectorId(node.id)"
+            [fConnectorConnectableSide]="connectableSide"
+            class="node-port port-input"
+            title="Entrada"
+          ></div>
+
+          <div
+            fConnector
+            fConnectorType="source"
+            [fConnectorId]="getSourceConnectorId(node.id)"
+            [fConnectorConnectableSide]="connectableSide"
+            class="node-port port-output"
+            title="Saída"
+          ></div>
+        </div>
+      </ng-container>
+
+      <ng-container ngProjectAs="[fConnections]">
+        <f-connection
+          *ngFor="let edge of document?.content?.edges || []; trackBy: trackByEdgeId"
+          [fConnectionId]="edge.id"
+          [fSourceId]="getSourceConnectorId(edge.source)"
+          [fTargetId]="getTargetConnectorId(edge.target)"
+          fSourceSide="right"
+          fTargetSide="left"
+          [fType]="connectionType"
+          class="flow-edge-line"
+          [class.selected]="selectedEdgeIds.includes(edge.id)"
+        >
+          <f-connection-marker-arrow fType="end"></f-connection-marker-arrow>
+
+          <div
+            fConnectionContent
+            class="edge-label-badge glass-panel"
+            [class.selected]="selectedEdgeIds.includes(edge.id)"
+            [title]="edge.description || edge.baseMessage || (edge.examples || []).join(' | ')"
+          >
+            <svg class="lucide-icon edge-user-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span class="edge-label">{{ edge.baseMessage || 'Resposta do cliente' }}</span>
+          </div>
+        </f-connection>
+      </ng-container>
+    </f-canvas>
+  </f-flow>
+
+  <aside
+    *ngIf="previewNode as node"
+    id="node-message-preview"
+    class="node-message-preview"
+    role="tooltip"
+    [style.left.px]="previewPosition.x"
+    [style.top.px]="previewPosition.y"
+    [style.max-height.px]="previewMaxHeight"
+    [class.above-node]="previewAbove"
+    (mouseenter)="cancelPreviewHide()"
+    (mouseleave)="schedulePreviewHide()"
+  >
+    <div class="preview-heading">{{ node.title }}</div>
+    <div class="preview-message">{{ node.message }}</div>
+  </aside>
+</div>

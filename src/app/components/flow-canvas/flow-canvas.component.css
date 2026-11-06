@@ -1,0 +1,289 @@
+.canvas-wrapper {
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, var(--color-grid) 1px, transparent 1.4px) 0 0 / 24px 24px,
+    var(--color-primary);
+  --ff-connection-color: var(--color-line);
+  --ff-connection-hover-color: var(--color-tertiary);
+  --ff-connection-selected-color: var(--color-tertiary);
+  --ff-connection-width: 1.5;
+  --ff-connection-hit-width: 14;
+  --ff-marker-color: var(--color-line);
+}
+
+.canvas-wrapper f-selection-area {
+  border: 1px solid var(--color-tertiary);
+  background: rgba(167, 232, 212, .13);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.node-message-preview {
+  position: fixed;
+  z-index: 200;
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-secondary);
+  box-shadow: 0 12px 36px var(--color-shadow);
+  color: var(--color-neutral);
+}
+
+.node-message-preview.above-node {
+  transform: translateY(calc(-100% - 12px));
+}
+
+.preview-heading {
+  margin-bottom: 8px;
+  color: var(--color-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.preview-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.5;
+  user-select: text;
+}
+
+f-flow {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+f-canvas {
+  cursor: grab;
+  background: transparent;
+}
+
+f-canvas:active {
+  cursor: grabbing;
+}
+
+/* Nó Card */
+.flow-node-card {
+  width: 240px;
+  height: 92px;
+  padding: 14px 14px;
+  border-radius: var(--radius-md);
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.flow-node-card:active {
+  cursor: grabbing;
+}
+
+.flow-node-card.selected {
+  border-color: var(--color-tertiary);
+  box-shadow: 0 0 0 2px rgba(167, 232, 212, 0.4), 0 8px 32px var(--color-shadow);
+}
+
+.flow-node-card.is-start {
+  background-color: var(--color-start-surface);
+  border-color: var(--color-start);
+  border-left: 3px solid var(--color-start);
+}
+
+.flow-node-card.is-end {
+  background-color: var(--color-danger-surface);
+  border-color: var(--color-danger);
+  border-right: 3px solid var(--color-danger);
+}
+
+.flow-node-card.is-end.selected {
+  outline: 3px solid var(--color-tertiary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(167, 232, 212, .18), 0 8px 32px var(--color-shadow);
+}
+
+.flow-node-card.is-start .node-icon {
+  color: var(--color-start);
+}
+
+.flow-node-card.is-end .node-icon {
+  color: var(--color-danger);
+}
+
+.node-state-badge {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 400;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0;
+}
+
+.start-badge {
+  background-color: var(--color-start);
+}
+
+.end-badge {
+  background-color: var(--color-danger);
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-muted);
+  flex: 0 0 auto;
+}
+
+.lucide-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.node-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-neutral);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Portas de Conexão */
+.node-port {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color-secondary);
+  border: 2px solid var(--color-tertiary);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: crosshair;
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+  z-index: 10;
+}
+
+.node-port:hover {
+  transform: translateY(-50%) scale(1.3);
+  background-color: var(--color-tertiary);
+}
+
+.port-input {
+  left: -6px;
+}
+
+.port-output {
+  right: -6px;
+}
+
+/* Ligações */
+.flow-edge-line {
+  --ff-connection-color: var(--color-line);
+  --ff-marker-color: var(--color-line);
+  cursor: pointer;
+}
+
+.flow-edge-preview {
+  --ff-connection-color: var(--color-tertiary);
+  --ff-marker-color: var(--color-tertiary);
+  pointer-events: none;
+}
+
+.flow-edge-line.selected {
+  --ff-connection-color: var(--color-tertiary);
+  --ff-marker-color: var(--color-tertiary);
+}
+
+:host ::ng-deep .flow-edge-line .f-connection-path {
+  fill: none;
+  stroke: var(--ff-connection-color);
+  stroke-width: 1.5px;
+  pointer-events: stroke;
+}
+
+:host ::ng-deep .flow-edge-preview .f-connection-path {
+  fill: none;
+  stroke: var(--color-tertiary);
+  stroke-width: 3px;
+  stroke-dasharray: 9 6;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+:host ::ng-deep .flow-edge-line .f-connection-selection {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14px;
+  pointer-events: stroke;
+}
+
+:host ::ng-deep .flow-edge-line.selected .f-connection-path {
+  stroke: var(--color-tertiary);
+}
+
+:host ::ng-deep .flow-edge-line .f-marker,
+:host ::ng-deep .flow-edge-line .connection-marker {
+  color: var(--ff-marker-color);
+}
+
+:host ::ng-deep .flow-edge-line .f-marker path,
+:host ::ng-deep .flow-edge-line .connection-marker path {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.edge-label-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  background-color: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition-fast);
+}
+
+.edge-label-badge.selected {
+  border-color: var(--color-tertiary);
+  color: var(--color-tertiary);
+}
+
+.edge-label {
+  color: var(--color-neutral);
+}
+
+.edge-user-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--color-tertiary);
+}

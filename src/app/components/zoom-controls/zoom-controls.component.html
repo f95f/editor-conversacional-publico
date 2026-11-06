@@ -1,0 +1,35 @@
+<div class="zoom-controls glass-panel">
+  <button class="btn btn-quiet btn-icon" (click)="zoomIn.emit()" title="Aumentar Zoom">
+    <span class="material-symbols-outlined" aria-hidden="true">zoom_in</span>
+  </button>
+
+  <button
+    class="zoom-display"
+    (click)="zoomReset.emit()"
+    title="Clique para redefinir o zoom para 100%"
+  >
+    {{ (zoom * 100) | number : '1.0-0' }}%
+  </button>
+
+  <button class="btn btn-quiet btn-icon" (click)="zoomOut.emit()" title="Diminuir Zoom">
+    <span class="material-symbols-outlined" aria-hidden="true">zoom_out</span>
+  </button>
+
+  <div class="divider"></div>
+
+  <button class="btn btn-quiet btn-icon" (click)="fitView.emit()" title="Ajustar à tela">
+    <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
+  </button>
+
+  <div class="divider"></div>
+
+  <button
+    class="btn btn-quiet btn-icon"
+    (click)="toggleTheme.emit()"
+    [title]="isDarkTheme ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">
+      {{ isDarkTheme ? 'dark_mode' : 'light_mode' }}
+    </span>
+  </button>
+</div>

@@ -1,0 +1,61 @@
+<section class="path-workspace" #workspace [class.inspector-open]="inspectorOpen" [class.dragging]="isDragging" [style.--path-drag-x.px]="dragX" [style.--path-drag-y.px]="dragY" aria-label="Percurso da conversa" (pointerdown)="onCanvasPointerDown($event)" (pointermove)="onCanvasPointerMove($event)" (pointerup)="onCanvasPointerUp($event)" (pointercancel)="onCanvasPointerUp($event)" (click)="onWorkspaceClick($event)">
+
+  <aside class="path-index glass-panel" *ngIf="listOpen" aria-label="Lista de blocos do fluxo">
+    <div class="index-heading"><strong>Blocos</strong><button type="button" (click)="listOpen = false" title="Fechar lista" aria-label="Fechar lista"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></div>
+    <div class="index-items"><div class="index-count">{{ document.content.nodes.length }} blocos</div><div class="index-item" *ngFor="let node of indexNodes; trackBy: trackNode"><button type="button" (click)="goToNode(node.id)" [title]="'Abrir ' + node.title"><strong>{{ node.title }}</strong><span [title]="nodePreview(node)">{{ nodePreview(node) }}</span></button><button class="index-connect" type="button" (click)="connectListedNode(node.id)" [disabled]="!currentNode" [title]="'Conectar ' + node.title + ' como próximo bloco'" [attr.aria-label]="'Conectar ' + node.title + ' como próximo bloco'"><span class="material-symbols-outlined" aria-hidden="true">add</span></button></div><button *ngIf="document.content.nodes.length > visibleIndexCount" type="button" (click)="visibleIndexCount = visibleIndexCount + 100">Mostrar mais blocos</button></div>
+  </aside>
+
+  <nav class="path-timeline" #timeline aria-label="Caminho percorrido">
+    <span class="timeline-label">Percurso</span>
+    <ng-container *ngFor="let step of steps; let i = index; trackBy: trackStep">
+      <span class="timeline-connector" *ngIf="i > 0" aria-hidden="true">›</span>
+      <button type="button" [attr.aria-current]="i === steps.length - 1 ? 'step' : null" [class.current]="i === steps.length - 1" (click)="jumpToStep.emit(i)" [title]="nodeTitle(step.nodeId)">
+        <span class="timeline-number">{{ i + 1 }}</span><span class="timeline-title">{{ nodeTitle(step.nodeId) }}</span><span *ngIf="isRepeatedStep(i)" class="repeat-indicator" title="Bloco repetido no percurso">↺</span>
+      </button>
+    </ng-container>
+  </nav>
+
+  <div class="path-stage" #stage *ngIf="currentNode as node; else emptyFlow">
+    <svg class="path-connections" aria-hidden="true">
+      <defs><marker id="path-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" /></marker><marker id="path-arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" /></marker></defs>
+      <path *ngFor="let route of incomingConnectionPaths" [attr.d]="route" />
+      <path *ngFor="let route of outgoingConnectionPaths" class="path-connection-selectable" [attr.data-edge-id]="route.id" [attr.d]="route.path" [class.active]="isActiveEdge(route.id)" [attr.marker-end]="isActiveEdge(route.id) ? 'url(#path-arrow-active)' : 'url(#path-arrow)'" (click)="selectOutgoingEdge($event, route.id)" />
+    </svg>
+    <div class="previous-column">
+      <button *ngFor="let previous of incomingNodes; trackBy: trackNode" class="previous-node path-node" [attr.data-node-id]="previous.id" [class.is-start]="isStart(previous.id)" [class.is-end]="isEnd(previous.id)" [class.is-selected]="isCardSelected('previous:' + previous.id)" [attr.aria-pressed]="isCardSelected('previous:' + previous.id)" type="button" (click)="openIncoming(previous, $event)" [title]="'Abrir entrada ' + previous.title"><strong>{{ previous.title }}</strong></button>
+    </div>
+
+    <article class="current-node path-node" [class.is-start]="node.id === document.document.startNodeId" [class.is-end]="outgoingCount === 0">
+      <div class="node-kicker"><span class="material-symbols-outlined" aria-hidden="true">smart_toy</span><span>Fala do agente</span><span *ngIf="node.id === document.document.startNodeId">· Início</span><span *ngIf="outgoingCount === 0">· Fim</span></div>
+      <div class="node-heading"><h1>{{ node.title }}</h1><button type="button" (click)="$event.stopPropagation(); editNode.emit(node.id)" title="Editar bloco" aria-label="Editar bloco"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button></div>
+      <p class="agent-message" *ngIf="node.message; else noMessage">{{ node.message }}</p>
+      <ng-template #noMessage><p class="no-message">Sem fala literal definida.</p></ng-template>
+      <p class="node-description" *ngIf="node.description">{{ node.description }}</p>
+      <div class="node-footer"><button type="button" (click)="addResponseNode.emit()" title="Criar resposta e novo bloco"><span class="material-symbols-outlined" aria-hidden="true">add</span> Nova resposta</button></div>
+    </article>
+
+    <section class="next-column" aria-label="Próximos blocos">
+      <div class="next-list" *ngIf="outgoing.length; else noOutgoing" (scroll)="scheduleConnections()">
+        <div class="next-row" *ngFor="let edge of outgoing; trackBy: trackEdge">
+          <div class="response-connection" (mouseenter)="hoveredEdgeId = edge.id" (mouseleave)="hoveredEdgeId = null">
+            <button class="edge-label-badge" [attr.data-edge-id]="edge.id" [class.active]="isActiveEdge(edge.id)" [attr.aria-pressed]="selectedEdgeIds.includes(edge.id)" type="button" (click)="selectOutgoingEdge($event, edge.id)" [title]="edge.description || edge.baseMessage" [attr.aria-label]="'Editar resposta: ' + edge.baseMessage">
+              <svg class="edge-user-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+              <span>{{ edge.baseMessage }}</span>
+            </button>
+          </div>
+          <div class="next-node-item" (mouseenter)="hoveredEdgeId = edge.id" (mouseleave)="hoveredEdgeId = null"><button class="next-node path-node" [attr.data-node-id]="edge.target" [attr.data-edge-id]="edge.id" [class.is-start]="isStart(edge.target)" [class.is-end]="isEnd(edge.target)" [class.is-selected]="isCardSelected('next:' + edge.id)" [attr.aria-pressed]="isCardSelected('next:' + edge.id)" type="button" (click)="followNext(edge, $event)" [title]="'Ir para ' + nodeTitle(edge.target) + (isRepeated(edge.target) ? ' · Retorno no percurso' : '')"><strong>{{ nodeTitle(edge.target) }}</strong></button><button class="swap-target" type="button" (click)="openSwap(edge.id)" [attr.aria-label]="'Trocar bloco de destino de ' + edge.baseMessage" [title]="'Trocar ' + nodeTitle(edge.target)"><svg class="swap-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16m-4 14 4-4-4-4M20 17H4" /></svg></button></div>
+        </div>
+      </div>
+      <ng-template #noOutgoing><p class="no-outgoing">Este bloco encerra o percurso.</p></ng-template>
+    </section>
+  </div>
+  <div class="path-selection-rect" *ngIf="selectionRect as rect" [style.left.px]="rect.left" [style.top.px]="rect.top" [style.width.px]="rect.width" [style.height.px]="rect.height" aria-hidden="true"></div>
+  <ng-template #emptyFlow><div class="path-empty">Este fluxo ainda não tem blocos. Use Adicionar bloco para começar.</div></ng-template>
+
+  <section class="swap-panel glass-panel" *ngIf="swapEdgeId" aria-label="Trocar próximo bloco">
+    <div class="swap-heading"><h2>Trocar próximo bloco</h2><button type="button" (click)="swapEdgeId = null" title="Fechar" aria-label="Fechar"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></div>
+    <input type="search" [(ngModel)]="swapQuery" placeholder="Buscar bloco por título ou ID" aria-label="Buscar bloco de destino" />
+    <div class="swap-options"><button *ngFor="let target of swapOptions; trackBy: trackNode" type="button" (click)="chooseSwapTarget(target.id)"><strong>{{ target.title }}</strong><small [title]="nodePreview(target)">{{ nodePreview(target) }}</small></button><p *ngIf="!swapOptions.length">Nenhum bloco encontrado.</p></div>
+    <button class="swap-more" *ngIf="swapOptions.length === swapVisibleCount" type="button" (click)="swapVisibleCount = swapVisibleCount + 100">Mostrar mais blocos</button>
+  </section>
+</section>
