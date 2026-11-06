@@ -18,6 +18,7 @@
 .flow-entry.active { border-color: var(--color-tertiary); }
 .flow-entry:focus-visible { outline: 2px solid var(--color-tertiary); }
 .show-flows { position: absolute; left: 16px; bottom: 16px; z-index: 150; }
+.app-container:not(.focus-mode):not(.path-mode) .show-flows { bottom: 64px; }
 @media (max-width: 1100px) {
   .flows-sidebar { position: absolute; inset: 0 auto 0 0; box-shadow: 8px 0 30px #0005; }
 }
